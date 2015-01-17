@@ -2,7 +2,12 @@
 
 Python script to keep track of website changes; sends email notifications on updates and/or also provides an RSS feed
 
-To specify which parts of a website should be monitored, <b>both XPath selectors</b> (e.g. "//h1") <b>and regular expressions can be used</b>.
+To specify which parts of a website should be monitored, <b>XPath selectors</b> (e.g. "//h1"), <b>CSS selectors</b> (e.g. "h1"), <b>and regular expressions can be used</b> (just choose the tools you like!).
+
+MailWebsiteChanges is related to <a href="http://code.google.com/p/pagemon-chrome-ext/">PageMonitor</a> for Chrome and <a href="https://addons.mozilla.org/de/firefox/addon/alertbox/">AlertBox</a> / <a href="https://addons.mozilla.org/de/firefox/addon/check4change/">Check4Change</a> for Firefox. However, instead of living in your web browser, you can run it independently from command line / bash and install it as a simple cron job running on your linux server.
+
+
+<i>This is Open Source -- so please contribute eagerly! ;-)</i>
 
 ## Configuration
 Configuration can be done by creating a <code>config.py</code> file (just place this file in the program folder):
@@ -11,85 +16,109 @@ Some examples:
 ### Website definitions
 <pre>
 <code>
- sites = [
+sites = [
 
           {'shortname': 'mywebsite1',
            'uri': 'http://www.mywebsite1.com/info',
-           'type': 'html',
-           'xpath': '//h1',
-           'regex': '',
-           'encoding': 'utf-8'},
+           'contentcss': 'div'},
 
           {'shortname': 'mywebsite2',
            'uri': 'http://www.mywebsite2.com/info',
-           'type': 'html',
-           'xpath': '//*[contains(concat(\' \', normalize-space(@class), \' \'), \' news-list-container \')]',
-           'regex': '',
-           'encoding': 'utf-8'},
+           'contentxpath': '//*[contains(concat(\' \', normalize-space(@class), \' \'), \' news-list-container \')]',
+           'titlexpath': '//title'},
 
           {'shortname': 'mywebsite3',
            'uri': 'http://www.mywebsite3.com/info',
            'type': 'text',
-           'xpath': '',
-           'regex': 'Version\"\:\d*\.\d*',
-           'encoding': 'utf-8'}
+           'contentregex': 'Version\"\:\d*\.\d*'}
 
-         ]
+]
 </code>
 </pre>
 
- * shortname
-     + short name of the entry, used as an identifier when sending email notifications
- * uri
-     + URI of the website
- * type
-     + content type of the website, e.g., 'xml'/'html'/'text'
- * xpath
-     + XPath expression. Set this to '' if you don't want to use it.
- * regex
-     + Regular expression. Set this to '' if you don't want to use it.
- * encoding
-     + Character encoding of the website, e.g., 'utf-8'.
+ * parameters:
 
-<em>SelectorTest.py</em> might be useful in order to test the definitions before integrating them into the config file.
+   * <b>shortname</b>  
+     short name of the entry, used as an identifier when sending email notifications
+   * <b>uri</b>  
+     URI of the website; If the scheme of the uri is 'cmd://', the string is interpreted as a command and the standard output (stdout) is parsed.
+   * <b>type</b> (optional; default: 'html')  
+     content type, e.g., 'xml'/'html'/'text'.
+   * <b>contentxpath</b> / <b>titlexpath</b> (optional)  
+     XPath expression for the content/title sections to extract. If you prefer, you could use contentcss/titlecss instead.
+   * <b>contentcss</b> / <b>titlecss</b> (optional)  
+     CSS expression for the content/title sections to extract. This is ignored if there is a corresponding XPath definition.
+   * <b>contentregex</b> / <b>titleregex</b> (optional)  
+     Regular expression. If XPath/CSS selector is defined, the regular expression is applied afterwards.
+   * <b>encoding</b> (optional; default: 'utf-8')  
+     Character encoding of the website, e.g., 'utf-8' or 'iso-8859-1'.
+   * <b>receiver</b> (optional)
+     Overwrites global receiver specification.
+
+
+ * We collect some XPath/CSS snippets at this place: <a href="https://github.com/Debianguru/MailWebsiteChanges/wiki/snippets">Snippet collection</a> - please feel free to add your own definitions!
+
+ * The <b>--dry-run="shortname"</b> option might be useful in order to validate and fine-tune a definition.
+
+ * If you would like to keep the data stored in a different place than the working directory, you can include something like this:
+  <pre>
+   <code>
+  os.chdir('/path/to/data/directory')
+   </code>
+  </pre>
 
 ### Mail settings
 <pre>
 <code>
- subjectPostfix = 'A website has been updated!'
- sender = 'me@mymail.com'
- smtptlshost = 'mysmtpprovider.com'
- smtptlsport = 587
- smtptlsusername = sender
- smtptlspwd = 'mypassword'
- receiver = 'me2@mymail.com'
+enableMailNotifications = True   #enable/disable notification messages; if set to False, only send error messages
+subjectPostfix = 'A website has been updated!'
 
- os.chdir('/path/to/working/directory')
+sender = 'me@mymail.com'
+smtphost = 'mysmtpprovider.com'
+useTLS = True
+smtpport = 587
+smtpusername = sender
+smtppwd = 'mypassword'
+receiver = 'me2@mymail.com'   # set to '' to also disable notifications in case of errors (not recommended)
 </code>
 </pre>
 
-If <em>receiver</em> is empty, no mail will be sent.
-
-### Cron job
-To setup a job that periodically runs the script, simply attach something like this to your /etc/crontab:
-<pre>
-<code>
-0 22	* * *	root	/usr/bin/python /path/to/MailWebsiteChanges/MailWebsiteChanges.py
-</code>
-</pre>
-This will run the script once a day at 10pm.
 
 ### RSS Feeds
-If you prefer to use the RSS feature, you just have to specify the path of the feed file which should be generated by the script (e.g., rssfile = 'feed.xml') and then point your webserver to that file. You can also invoke the FeedServer.py script which implements a very basic webserver.
+If you prefer to use the RSS feature, you just have to specify the path of the feed file which should be generated by the script (e.g., rssfile = 'feed.xml') and then point your webserver to that file. You can also invoke the mwcfeedserver.py script which implements a very basic webserver.
 
 <pre>
  <code>
-  rssfile = 'feed.xml'
-  maxFeeds = 100
+enableRSSFeed = True   #enable/disable RSS feed
+
+rssfile = 'feed.xml'
+maxFeeds = 100
  </code>
 </pre>
 
 
+### Program execution
+To setup a job that periodically runs the script, simply attach something like this to your /etc/crontab:
+<pre>
+ <code>
+0 8-22/2    * * *   root	/usr/bin/python3 /usr/bin/mwc
+ </code>
+</pre>
+This will run the script every two hours between 8am and 10pm.
+
+If you prefer invoking the script with an alternate configuration files, simply pass the name of the configuration file as an argument, e.g., for <code>my_alternate_config.py</code>, use <code>mwc --config=my_alternate_config</code>.
+
+
 ## Requirements
-Requires <a href="http://lxml.de/">lxml</a>.
+Requires Python 3, <a href="http://lxml.de/">lxml</a>, and <a href="http://pythonhosted.org/cssselect/">cssselect</a>.
+For <b>Ubuntu 12.04</b>, type:
+
+  * sudo apt-get install python3 python3-dev python3-setuptools libxml2 libxslt1.1 libxml2-dev libxslt1-dev python-libxml2 python-libxslt1
+  * sudo easy\_install3 pip
+  * sudo pip-3.2 install lxml cssselect
+
+For <b>Ubuntu 14.04</b>, type:
+
+  * sudo apt-get install python3-lxml python3-pip
+  * sudo pip3 install cssselect
 

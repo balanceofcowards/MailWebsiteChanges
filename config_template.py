@@ -1,41 +1,56 @@
 import os.path
 
-# remember to rename this file to "config.py"
- sites = [
+# Copyright: (2013-2014) Michael Till Beck <Debianguru@gmx.de>
+# License: GPL-2.0+
+
+#We collect xpath snippets at this place: <a href="https://github.com/Debianguru/MailWebsiteChanges/wiki/snippets">Snippet collection</a> - please feel free to add your own definitions!
+
+sites = [
 
           {'shortname': 'mywebsite1',
            'uri': 'http://www.mywebsite1.com/info',
            'type': 'html',
-           'xpath': '//h1',
-           'regex': '',
+           'titlexpath': '//h1',
+           'contentxpath': '//div',
+           'titleregex': '',
+           'contentregex': '',
            'encoding': 'utf-8'},
 
           {'shortname': 'mywebsite2',
            'uri': 'http://www.mywebsite2.com/info',
            'type': 'html',
-           'xpath': '//*[contains(concat(\' \', normalize-space(@class), \' \'), \' news-list-container \')]',
+           'contentxpath': '//*[contains(concat(\' \', normalize-space(@class), \' \'), \' news-list-container \')]',
            'regex': '',
            'encoding': 'utf-8'},
 
           {'shortname': 'mywebsite3',
            'uri': 'http://www.mywebsite3.com/info',
            'type': 'text',
-           'xpath': '',
-           'regex': 'Version\"\:\d*\.\d*',
-           'encoding': 'utf-8'}
+           'contentxpath': '',
+           'contentregex': 'Version\"\:\d*\.\d*',
+           'encoding': 'utf-8'},
 
-         ]
+          {'shortname': 'lscmd',
+           'uri': 'cmd://ls -l /home/pi',
+           'contentregex': '.*Desktop.*'
+          }
+
+]
 
 subjectPostfix = 'A website has been updated!'
+
+enableMailNotifications = True
 sender = 'me@mymail.com'
-smtptlshost = 'mysmtpprovider.com'
-smtptlsport = 587
-smtptlsusername = sender
-smtptlspwd = 'mypassword'
+smtphost = 'mysmtpprovider.com'
+useTLS = True
+smtpport = 587
+smtpusername = sender
+smtppwd = 'mypassword'
 receiver = 'me2@mymail.com'
 
-os.chdir('/path/to/working/directory')
+os.chdir('/var/cache/mwc')
 
-rssfile = 'feed.xml'   # set to '' if you don't want the script to generate a RSS2 feed
+enableRSSFeed = True
+rssfile = 'feed.xml'
 maxFeeds = 100
 
